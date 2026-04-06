@@ -82,8 +82,8 @@ class _IzinScreenState extends State<IzinScreen> {
   Widget _buildIzinCard(Map<String, dynamic> izin) {
     final jenisColors = {'izin': Colors.blue, 'sakit': Colors.red, 'cuti': Colors.green};
     final color = jenisColors[izin['jenis']] ?? Colors.grey;
-    final mulai = DateTime.parse(izin['tanggal_mulai']);
-    final selesai = DateTime.parse(izin['tanggal_selesai']);
+    final mulai = DateTime.tryParse(izin['tanggal_mulai'] ?? '') ?? DateTime.now();
+    final selesai = DateTime.tryParse(izin['tanggal_selesai'] ?? '') ?? DateTime.now();
     final durasi = selesai.difference(mulai).inDays + 1;
 
     return Card(
