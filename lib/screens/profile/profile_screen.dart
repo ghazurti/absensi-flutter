@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -500,10 +501,13 @@ class _GantiPasswordScreenState extends State<GantiPasswordScreen> {
       }
     } catch (e) {
       if (mounted) {
+        String msg = 'Terjadi kesalahan. Coba lagi.';
+        if (e is DioException && e.response != null) {
+          final data = e.response!.data;
+          if (data is Map) msg = data['message']?.toString() ?? msg;
+        }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: const Text('Password lama tidak sesuai'),
-              backgroundColor: Colors.red),
+          SnackBar(content: Text(msg), backgroundColor: Colors.red),
         );
       }
     } finally {

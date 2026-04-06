@@ -41,8 +41,14 @@ class _AbsensiScreenState extends State<AbsensiScreen> {
         _riwayat = absensis;
         _isLoading = false;
       });
-    } catch (_) {
+    } catch (e) {
       setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal memuat data. Tarik untuk coba lagi.'),
+              backgroundColor: Colors.red),
+        );
+      }
     }
   }
 

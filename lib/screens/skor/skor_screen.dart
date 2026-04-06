@@ -30,8 +30,14 @@ class _SkorScreenState extends State<SkorScreen> {
         _data = res.data;
         _isLoading = false;
       });
-    } catch (_) {
+    } catch (e) {
       setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal memuat skor. Tarik untuk coba lagi.'),
+              backgroundColor: Colors.red),
+        );
+      }
     }
   }
 

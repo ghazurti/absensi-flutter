@@ -35,8 +35,14 @@ class _ShiftScreenState extends State<ShiftScreen> {
         _shifts = data.map((e) => ShiftModel.fromJson(e)).toList();
         _isLoading = false;
       });
-    } catch (_) {
+    } catch (e) {
       setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal memuat shift. Tarik untuk coba lagi.'),
+              backgroundColor: Colors.red),
+        );
+      }
     }
   }
 

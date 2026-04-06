@@ -28,8 +28,14 @@ class _IzinScreenState extends State<IzinScreen> {
         _izinList = response.data;
         _isLoading = false;
       });
-    } catch (_) {
+    } catch (e) {
       setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal memuat data izin. Tarik untuk coba lagi.'),
+              backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
