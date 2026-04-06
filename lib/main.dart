@@ -34,18 +34,18 @@ class MyApp extends StatelessWidget {
             brightness: Brightness.light,
           ),
           useMaterial3: true,
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [Locale('id', 'ID'), Locale('en', 'US')],
           appBarTheme: const AppBarTheme(
             backgroundColor: Color(0xFF1565C0),
             foregroundColor: Colors.white,
             elevation: 0,
           ),
         ),
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('id', 'ID'), Locale('en', 'US')],
         home: const AuthWrapper(),
       ),
     );
