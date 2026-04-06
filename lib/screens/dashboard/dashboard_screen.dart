@@ -170,11 +170,11 @@ class _HomeTabState extends State<_HomeTab> {
             Row(
               children: [
                 _buildStatusItem('Check In',
-                    sudahCheckIn ? absensiHariIni['check_in'].toString().substring(11, 16) : '--:--',
+                    sudahCheckIn ? _formatJam(absensiHariIni['check_in']) : '--:--',
                     sudahCheckIn ? Colors.green : Colors.grey),
                 const SizedBox(width: 24),
                 _buildStatusItem('Check Out',
-                    sudahCheckOut ? absensiHariIni['check_out'].toString().substring(11, 16) : '--:--',
+                    sudahCheckOut ? _formatJam(absensiHariIni['check_out']) : '--:--',
                     sudahCheckOut ? Colors.blue : Colors.grey),
                 const Spacer(),
                 if (absensiHariIni != null)
@@ -195,6 +195,19 @@ class _HomeTabState extends State<_HomeTab> {
         ),
       ),
     );
+  }
+
+  String _formatJam(dynamic value) {
+    if (value == null) return '--:--';
+    try {
+      final dt = DateTime.parse(value.toString());
+      return DateFormat('HH:mm').format(dt);
+    } catch (_) {
+      // Fallback: ambil substring jika format datetime string
+      final str = value.toString();
+      if (str.length >= 16) return str.substring(11, 16);
+      return '--:--';
+    }
   }
 
   Widget _buildStatusItem(String label, String value, Color color) {

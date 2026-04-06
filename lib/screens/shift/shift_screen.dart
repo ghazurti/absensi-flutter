@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/shift_model.dart';
@@ -198,7 +199,10 @@ class _AddShiftSheetState extends State<_AddShiftSheet> {
       if (mounted) Navigator.pop(context);
     } catch (e) {
       String msg = 'Terjadi kesalahan';
-      if (e is DioException && e.response != null) msg = e.response!.data['message'] ?? msg;
+      if (e is DioException && e.response != null) {
+        final data = e.response!.data;
+        if (data is Map) msg = data['message']?.toString() ?? msg;
+      }
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
     }
     setState(() => _isSaving = false);

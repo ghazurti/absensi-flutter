@@ -122,7 +122,8 @@ class _AbsensiScreenState extends State<AbsensiScreen> {
     } catch (e) {
       String msg = 'Terjadi kesalahan';
       if (e is DioException && e.response != null) {
-        msg = e.response!.data['message'] ?? msg;
+        final data = e.response!.data;
+        if (data is Map) msg = data['message']?.toString() ?? msg;
       }
       _showError(msg);
     }
