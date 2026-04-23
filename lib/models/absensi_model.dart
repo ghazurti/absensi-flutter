@@ -27,14 +27,19 @@ class AbsensiModel {
     this.keterangan,
   });
 
+  static DateTime _parseUtc(String s) {
+    if (!s.contains('Z') && !s.contains('+')) return DateTime.parse('${s}Z').toLocal();
+    return DateTime.parse(s).toLocal();
+  }
+
   factory AbsensiModel.fromJson(Map<String, dynamic> json) {
     return AbsensiModel(
       id: json['id'],
       userId: json['user_id'],
       shiftId: json['shift_id'],
-      tanggal: DateTime.parse(json['tanggal']),
-      checkIn: json['check_in'] != null ? DateTime.parse(json['check_in']) : null,
-      checkOut: json['check_out'] != null ? DateTime.parse(json['check_out']) : null,
+      tanggal: _parseUtc(json['tanggal']),
+      checkIn: json['check_in'] != null ? _parseUtc(json['check_in']) : null,
+      checkOut: json['check_out'] != null ? _parseUtc(json['check_out']) : null,
       fotoCheckIn: json['foto_check_in'],
       fotoCheckOut: json['foto_check_out'],
       latitudeIn: json['latitude_in'] != null ? double.tryParse(json['latitude_in'].toString()) : null,
