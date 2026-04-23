@@ -143,6 +143,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             : const Text('MASUK',
                                 style: TextStyle(fontSize: 16)),
                       ),
+                      const Spacer(),
+                      const Text(
+                        'Developed by Ghazur Illahi',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                      ),
+                      const SizedBox(height: 8),
                     ],
                   ),
                 ),
