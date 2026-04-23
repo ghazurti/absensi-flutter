@@ -271,12 +271,12 @@ class _HomeTabState extends State<_HomeTab> {
   String _formatJam(dynamic value) {
     if (value == null) return '--:--';
     try {
-      final dt = DateTime.parse(value.toString());
+      final s = value.toString();
+      final dt = (s.contains('Z') || s.contains('+'))
+          ? DateTime.parse(s).toLocal()
+          : DateTime.parse('${s}Z').toLocal();
       return DateFormat('HH:mm').format(dt);
     } catch (_) {
-      // Fallback: ambil substring jika format datetime string
-      final str = value.toString();
-      if (str.length >= 16) return str.substring(11, 16);
       return '--:--';
     }
   }
