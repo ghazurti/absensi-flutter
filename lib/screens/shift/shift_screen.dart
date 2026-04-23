@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/shift_model.dart';
 import '../../services/api_service.dart';
+import '../../utils/constants.dart';
 
 class ShiftScreen extends StatefulWidget {
   const ShiftScreen({super.key});
@@ -269,7 +270,7 @@ class _AddShiftSheetState extends State<_AddShiftSheet> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _isSaving ? null : _save,
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1565C0), foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(backgroundColor: AppConstants.primaryColor, foregroundColor: Colors.white),
             child: _isSaving ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text('SIMPAN SHIFT'),
           ),
           const SizedBox(height: 16),

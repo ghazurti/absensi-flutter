@@ -37,8 +37,8 @@ class AbsensiModel {
       checkOut: json['check_out'] != null ? DateTime.parse(json['check_out']) : null,
       fotoCheckIn: json['foto_check_in'],
       fotoCheckOut: json['foto_check_out'],
-      latitudeIn: json['latitude_in']?.toDouble(),
-      longitudeIn: json['longitude_in']?.toDouble(),
+      latitudeIn: json['latitude_in'] != null ? double.tryParse(json['latitude_in'].toString()) : null,
+      longitudeIn: json['longitude_in'] != null ? double.tryParse(json['longitude_in'].toString()) : null,
       status: json['status'] ?? 'hadir',
       keterangan: json['keterangan'],
     );

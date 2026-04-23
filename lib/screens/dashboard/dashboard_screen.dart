@@ -95,7 +95,7 @@ class _HomeTabState extends State<_HomeTab> {
                 background: Container(
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Color(0xFF1565C0), Color(0xFF42A5F5)],
+                      colors: [Color(0xFF009540), Color(0xFF4CAF50)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -137,7 +137,11 @@ class _HomeTabState extends State<_HomeTab> {
                     if (_isLoading)
                       const Center(child: CircularProgressIndicator())
                     else if (_dashboardData != null) ...[
-                      _buildAbsensiCard(),
+                      if (user?.isAdmin == true) ...[
+                        _buildAdminStatsCard(),
+                      ] else ...[
+                        _buildAbsensiCard(),
+                      ],
                       const SizedBox(height: 16),
                       _buildRekapCard(),
                     ],
@@ -146,6 +150,73 @@ class _HomeTabState extends State<_HomeTab> {
                   ],
                 ),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdminStatsCard() {
+    final d = _dashboardData!;
+    final stats = [
+      {'label': 'Total Pegawai', 'value': d['total_pegawai']?.toString() ?? '0', 'color': Colors.blue, 'icon': Icons.people},
+      {'label': 'Hadir Hari Ini', 'value': d['hadir_hari_ini']?.toString() ?? '0', 'color': Colors.green, 'icon': Icons.check_circle_outline},
+      {'label': 'Terlambat', 'value': d['terlambat_hari_ini']?.toString() ?? '0', 'color': Colors.orange, 'icon': Icons.access_time},
+      {'label': 'Belum Absen', 'value': d['belum_absen_hari_ini']?.toString() ?? '0', 'color': Colors.red, 'icon': Icons.person_off_outlined},
+    ];
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Rekap Kehadiran Hari Ini',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 12),
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: 2.4,
+              children: stats.map((s) {
+                final color = s['color'] as Color;
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: color.withOpacity(0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(s['icon'] as IconData, color: color, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(s['value'] as String,
+                                style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: color)),
+                            Text(s['label'] as String,
+                                style: const TextStyle(
+                                    fontSize: 10, color: Colors.grey),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
             ),
           ],
         ),

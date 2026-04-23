@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/api_service.dart';
 import '../../services/notification_service.dart';
+import '../../utils/constants.dart';
 import '../skor/skor_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -24,11 +25,17 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   CircleAvatar(
                     radius: 48,
-                    backgroundColor: const Color(0xFF1565C0),
-                    child: Text(
-                      user.name.isNotEmpty ? user.name[0].toUpperCase() : 'P',
-                      style: const TextStyle(fontSize: 34, color: Colors.white),
-                    ),
+                    backgroundColor: AppConstants.primaryColor,
+                    backgroundImage: user.foto != null
+                        ? NetworkImage(
+                            '${AppConstants.baseUrl.replaceAll('/api', '')}/storage/${user.foto}')
+                        : null,
+                    child: user.foto == null
+                        ? Text(
+                            user.name.isNotEmpty ? user.name[0].toUpperCase() : 'P',
+                            style: const TextStyle(fontSize: 34, color: Colors.white),
+                          )
+                        : null,
                   ),
                   const SizedBox(height: 12),
                   Text(user.name,
@@ -41,6 +48,8 @@ class ProfileScreen extends StatelessWidget {
                   Card(
                     child: Column(
                       children: [
+                        _buildInfoTile(Icons.fingerprint, 'NIK', user.nik ?? '-'),
+                        const Divider(height: 1),
                         _buildInfoTile(Icons.badge, 'NIP', user.nip ?? '-'),
                         const Divider(height: 1),
                         _buildInfoTile(Icons.email, 'Email', user.email),
@@ -48,6 +57,15 @@ class ProfileScreen extends StatelessWidget {
                         _buildInfoTile(Icons.phone, 'No. HP', user.noHp ?? '-'),
                         const Divider(height: 1),
                         _buildInfoTile(Icons.business, 'Unit', user.unit ?? '-'),
+                        const Divider(height: 1),
+                        _buildInfoTile(Icons.military_tech, 'Pangkat/Gol',
+                            user.pangkatGol ?? '-'),
+                        const Divider(height: 1),
+                        _buildInfoTile(
+                          user.isShift ? Icons.schedule : Icons.apartment,
+                          'Jenis Absensi',
+                          user.isShift ? 'Shift' : 'Normal (Jam Kantor)',
+                        ),
                         const Divider(height: 1),
                         _buildInfoTile(Icons.admin_panel_settings, 'Role',
                             user.isAdmin ? 'Administrator' : 'Pegawai'),
@@ -61,7 +79,7 @@ class ProfileScreen extends StatelessWidget {
                     child: Column(
                       children: [
                         ListTile(
-                          leading: const Icon(Icons.edit, color: Color(0xFF1565C0)),
+                          leading: const Icon(Icons.edit, color: AppConstants.primaryColor),
                           title: const Text('Edit Profil'),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () => Navigator.push(context,
@@ -69,7 +87,7 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         const Divider(height: 1),
                         ListTile(
-                          leading: const Icon(Icons.lock_outline, color: Color(0xFF1565C0)),
+                          leading: const Icon(Icons.lock_outline, color: AppConstants.primaryColor),
                           title: const Text('Ganti Password'),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () => Navigator.push(context,
@@ -135,7 +153,7 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildInfoTile(IconData icon, String label, String value) {
     return ListTile(
-      leading: Icon(icon, color: const Color(0xFF1565C0)),
+      leading: Icon(icon, color: AppConstants.primaryColor),
       title: Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
       subtitle: Text(value,
           style: const TextStyle(fontSize: 15, color: Colors.black87)),
@@ -284,7 +302,7 @@ class _NotifikasiSettingScreenState extends State<NotifikasiSettingScreen> {
               onPressed: _simpan,
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 48),
-                backgroundColor: const Color(0xFF1565C0),
+                backgroundColor: AppConstants.primaryColor,
                 foregroundColor: Colors.white,
               ),
               child: const Text('Simpan Pengaturan'),
@@ -433,7 +451,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                 onPressed: _isLoading ? null : _simpan,
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 48),
-                  backgroundColor: const Color(0xFF1565C0),
+                  backgroundColor: AppConstants.primaryColor,
                   foregroundColor: Colors.white,
                 ),
                 child: _isLoading
@@ -582,7 +600,7 @@ class _GantiPasswordScreenState extends State<GantiPasswordScreen> {
                 onPressed: _isLoading ? null : _simpan,
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 48),
-                  backgroundColor: const Color(0xFF1565C0),
+                  backgroundColor: AppConstants.primaryColor,
                   foregroundColor: Colors.white,
                 ),
                 child: _isLoading

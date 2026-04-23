@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
+import '../../utils/constants.dart';
 
 class IzinScreen extends StatefulWidget {
   const IzinScreen({super.key});
@@ -91,6 +92,18 @@ class _IzinScreenState extends State<IzinScreen> {
     final mulai = DateTime.tryParse(izin['tanggal_mulai'] ?? '') ?? DateTime.now();
     final selesai = DateTime.tryParse(izin['tanggal_selesai'] ?? '') ?? DateTime.now();
     final durasi = selesai.difference(mulai).inDays + 1;
+    final status = izin['status']?.toString() ?? 'pending';
+
+    final statusColor = switch (status) {
+      'disetujui' => Colors.green,
+      'ditolak' => Colors.red,
+      _ => Colors.orange,
+    };
+    final statusLabel = switch (status) {
+      'disetujui' => 'Disetujui',
+      'ditolak' => 'Ditolak',
+      _ => 'Menunggu',
+    };
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -123,6 +136,22 @@ class _IzinScreenState extends State<IzinScreen> {
                       style: const TextStyle(color: Colors.grey, fontSize: 12),
                       maxLines: 1, overflow: TextOverflow.ellipsis),
                 ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: statusColor.withOpacity(0.4)),
+              ),
+              child: Text(
+                statusLabel,
+                style: TextStyle(
+                    color: statusColor,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -233,7 +262,7 @@ class _TambahIzinSheetState extends State<_TambahIzinSheet> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _isSaving ? null : _save,
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1565C0), foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(backgroundColor: AppConstants.primaryColor, foregroundColor: Colors.white),
             child: _isSaving
                 ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                 : const Text('AJUKAN'),

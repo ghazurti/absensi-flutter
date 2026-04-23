@@ -30,14 +30,24 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF1565C0),
+            seedColor: const Color(0xFF009540),
             brightness: Brightness.light,
           ),
           useMaterial3: true,
           appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFF1565C0),
+            backgroundColor: Color(0xFF009540),
             foregroundColor: Colors.white,
             elevation: 0,
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF009540),
+              foregroundColor: Colors.white,
+            ),
+          ),
+          floatingActionButtonTheme: const FloatingActionButtonThemeData(
+            backgroundColor: Color(0xFF009540),
+            foregroundColor: Colors.white,
           ),
         ),
         localizationsDelegates: const [

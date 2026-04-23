@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/constants.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -46,26 +47,30 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1565C0),
+      backgroundColor: AppConstants.primaryColor,
       body: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 60),
-            const Icon(Icons.local_hospital, size: 80, color: Colors.white),
+            const SizedBox(height: 48),
+            Image.asset(
+              AppConstants.logoPath,
+              width: 100,
+              height: 100,
+            ),
             const SizedBox(height: 16),
             const Text(
               'RSUD Kota Baubau',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 24,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const Text(
               'Sistem Absensi Pegawai',
-              style: TextStyle(color: Colors.white70, fontSize: 14),
+              style: TextStyle(color: Colors.white70, fontSize: 13),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 36),
             Expanded(
               child: Container(
                 decoration: const BoxDecoration(
@@ -104,7 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         obscureText: _obscurePassword,
                         decoration: InputDecoration(
                           labelText: 'Password',
-                          prefixIcon: const Icon(Icons.lock_outlined),
+                          prefixIcon: const Icon(Icons.lock_outline),
                           border: const OutlineInputBorder(),
                           suffixIcon: IconButton(
                             icon: Icon(_obscurePassword
@@ -121,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ElevatedButton(
                         onPressed: _isLoading ? null : _login,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1565C0),
+                          backgroundColor: AppConstants.primaryColor,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
+import '../../utils/constants.dart';
 
 class SkorScreen extends StatefulWidget {
   const SkorScreen({super.key});
@@ -46,7 +47,7 @@ class _SkorScreenState extends State<SkorScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Skor Kehadiran'),
-        backgroundColor: const Color(0xFF1565C0),
+        backgroundColor: AppConstants.primaryColor,
         foregroundColor: Colors.white,
       ),
       backgroundColor: Colors.grey[100],
@@ -86,7 +87,7 @@ class _SkorScreenState extends State<SkorScreen> {
     final years = List.generate(3, (i) => DateTime.now().year - i);
 
     return Container(
-      color: const Color(0xFF1565C0),
+      color: AppConstants.primaryColor,
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Row(
         children: [
