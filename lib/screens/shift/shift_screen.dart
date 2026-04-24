@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../models/shift_model.dart';
+import '../../providers/auth_provider.dart';
 import '../../services/api_service.dart';
 import '../../utils/constants.dart';
 
@@ -48,6 +50,35 @@ class _ShiftScreenState extends State<ShiftScreen> {
   }
 
   void _showAddShift() {
+    final user = context.read<AuthProvider>().user;
+    if (user != null && !user.isShift) {
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: const [
+              Icon(Icons.block, color: Colors.red, size: 28),
+              SizedBox(width: 8),
+              Text('Akses Ditolak'),
+            ],
+          ),
+          content: const Text(
+            'Anda terdaftar sebagai pegawai dengan absensi normal.\n\n'
+            'Fitur jadwal shift hanya tersedia untuk pegawai dengan sistem absensi shift.',
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(backgroundColor: AppConstants.primaryColor, foregroundColor: Colors.white),
+              child: const Text('Mengerti'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -105,29 +136,59 @@ class _ShiftScreenState extends State<ShiftScreen> {
         icon: const Icon(Icons.add),
         label: const Text('Tambah Shift'),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _shifts.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.schedule, size: 64, color: Colors.grey),
-                      const SizedBox(height: 16),
-                      const Text('Belum ada shift', style: TextStyle(color: Colors.grey)),
-                      const SizedBox(height: 8),
-                      ElevatedButton(onPressed: _showAddShift, child: const Text('Tambah Shift')),
-                    ],
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadShifts,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _shifts.length,
-                    itemBuilder: (_, i) => _buildShiftCard(_shifts[i]),
-                  ),
+      body: Builder(builder: (context) {
+        final user = context.watch<AuthProvider>().user;
+        final isNormal = user != null && !user.isShift;
+        return Column(
+          children: [
+            if (isNormal)
+              Container(
+                width: double.infinity,
+                color: Colors.orange.shade100,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: Row(
+                  children: const [
+                    Icon(Icons.info_outline, color: Colors.orange, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Anda adalah pegawai absensi normal. Tidak dapat menambah jadwal shift.',
+                        style: TextStyle(color: Colors.orange, fontSize: 13),
+                      ),
+                    ),
+                  ],
                 ),
+              ),
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _shifts.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.schedule, size: 64, color: Colors.grey),
+                              const SizedBox(height: 16),
+                              const Text('Belum ada shift', style: TextStyle(color: Colors.grey)),
+                              if (!isNormal) ...[
+                                const SizedBox(height: 8),
+                                ElevatedButton(onPressed: _showAddShift, child: const Text('Tambah Shift')),
+                              ],
+                            ],
+                          ),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: _loadShifts,
+                          child: ListView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: _shifts.length,
+                            itemBuilder: (_, i) => _buildShiftCard(_shifts[i]),
+                          ),
+                        ),
+            ),
+          ],
+        );
+      }),
     );
   }
 

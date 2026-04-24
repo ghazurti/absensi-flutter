@@ -44,6 +44,21 @@ class UserModel {
     );
   }
 
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'email': email,
+        'nik': nik,
+        'nip': nip,
+        'no_hp': noHp,
+        'jabatan': jabatan,
+        'pangkat_gol': pangkatGol,
+        'unit': unit,
+        'jenis_absensi': jenisAbsensi,
+        'role': role,
+        'foto': foto,
+      };
+
   bool get isAdmin => role == 'admin';
   bool get isShift => jenisAbsensi == 'shift';
 }
