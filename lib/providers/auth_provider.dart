@@ -25,8 +25,8 @@ class AuthProvider extends ChangeNotifier {
         await _saveUserCache(_user!);
       } catch (e) {
         final statusCode = _getStatusCode(e);
-        if (statusCode == 401) {
-          // Token benar-benar tidak valid, paksa login ulang
+        if (statusCode == 401 || statusCode == 403) {
+          // Token tidak valid atau perangkat direset / tidak cocok, paksa login ulang
           await _api.clearToken();
           await _clearUserCache();
         } else {
@@ -115,7 +115,11 @@ class AuthProvider extends ChangeNotifier {
     if (e.runtimeType.toString().contains('DioException')) {
       final response = (e as dynamic).response;
       if (response != null) {
-        return response.data['message'] ?? 'Terjadi kesalahan';
+        final data = response.data;
+        if (data is Map && data['message'] != null) {
+          return data['message'].toString();
+        }
+        return 'Terjadi kesalahan (${response.statusCode})';
       }
     }
     return 'Tidak dapat terhubung ke server';

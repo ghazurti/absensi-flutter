@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
@@ -95,6 +96,10 @@ class _AbsensiScreenState extends State<AbsensiScreen> {
         desiredAccuracy: LocationAccuracy.high);
   }
 
+  // Placeholder JPEG valid (1x1 px, 134 byte) saat kamera dinonaktifkan
+  static const String _placeholderFotoBase64 =
+      '/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=';
+
   Future<XFile?> _ambilFoto() async {
     final picker = ImagePicker();
     return await picker.pickImage(
@@ -135,17 +140,26 @@ class _AbsensiScreenState extends State<AbsensiScreen> {
         return;
       }
 
-      final foto = await _ambilFoto();
-      if (foto == null) {
-        setState(() => _isProcessing = false);
-        return;
-      }
-
       final formMap = <String, dynamic>{
         'latitude': position.latitude,
         'longitude': position.longitude,
-        'foto': await MultipartFile.fromFile(foto.path, filename: 'foto.jpg'),
       };
+
+      if (AppConstants.enableCameraAbsensi) {
+        final foto = await _ambilFoto();
+        if (foto == null) {
+          setState(() => _isProcessing = false);
+          return;
+        }
+        formMap['foto'] =
+            await MultipartFile.fromFile(foto.path, filename: 'foto.jpg');
+      } else {
+        formMap['foto'] = MultipartFile.fromBytes(
+          base64Decode(_placeholderFotoBase64),
+          filename: 'foto.jpg',
+          contentType: DioMediaType('image', 'jpeg'),
+        );
+      }
 
       if (isCheckIn && _selectedShift != null) {
         formMap['shift_id'] = _selectedShift!.id;

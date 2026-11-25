@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../utils/constants.dart';
+import 'device_service.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -23,6 +24,8 @@ class ApiService {
         if (token != null) {
           options.headers['Authorization'] = 'Bearer $token';
         }
+        final device = await DeviceService.getIdentity();
+        options.headers['X-Device-Id'] = device.deviceId;
         return handler.next(options);
       },
       onError: (error, handler) {
@@ -31,8 +34,14 @@ class ApiService {
     ));
   }
 
-  Future<Response> login(String email, String password) {
-    return _dio.post('/login', data: {'email': email, 'password': password});
+  Future<Response> login(String email, String password) async {
+    final device = await DeviceService.getIdentity();
+    return _dio.post('/login', data: {
+      'email': email,
+      'password': password,
+      'device_id': device.deviceId,
+      'device_name': device.deviceName,
+    });
   }
 
   Future<Response> logout() {

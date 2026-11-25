@@ -8,6 +8,9 @@ class AppConstants {
   static const double rsudLongitude = 122.59259;
   static const double radiusAbsensi = 300; // meter (sesuai konfigurasi backend)
 
+  // Fitur kamera saat absensi (ubah ke true untuk mengaktifkan kembali)
+  static const bool enableCameraAbsensi = false;
+
   // Warna dari logo RSUD Kota Baubau
   static const Color primaryColor = Color(0xFF009540);   // hijau logo
   static const Color secondaryColor = Color(0xFFF5C200); // kuning/emas logo
