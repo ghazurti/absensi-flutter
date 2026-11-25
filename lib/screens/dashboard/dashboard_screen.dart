@@ -240,11 +240,11 @@ class _HomeTabState extends State<_HomeTab> {
             const SizedBox(height: 12),
             Row(
               children: [
-                _buildStatusItem('Check In',
+                _buildStatusItem('Absen Masuk',
                     sudahCheckIn ? _formatJam(absensiHariIni['check_in']) : '--:--',
                     sudahCheckIn ? Colors.green : Colors.grey),
                 const SizedBox(width: 24),
-                _buildStatusItem('Check Out',
+                _buildStatusItem('Absen Pulang',
                     sudahCheckOut ? _formatJam(absensiHariIni['check_out']) : '--:--',
                     sudahCheckOut ? Colors.blue : Colors.grey),
                 const Spacer(),

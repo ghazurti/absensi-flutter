@@ -169,10 +169,10 @@ class _AbsensiScreenState extends State<AbsensiScreen> {
 
       if (isCheckIn) {
         await _api.checkIn(formData);
-        _showSuccess('Check-in berhasil!');
+        _showSuccess('Absen masuk berhasil!');
       } else {
         await _api.checkOut(formData);
-        _showSuccess('Check-out berhasil!');
+        _showSuccess('Absen pulang berhasil!');
       }
 
       await _loadData();
@@ -252,7 +252,7 @@ class _AbsensiScreenState extends State<AbsensiScreen> {
               children: [
                 Expanded(
                   child: _buildTimeInfo(
-                    'Check In',
+                    'Absen Masuk',
                     sudahCheckIn
                         ? DateFormat('HH:mm').format(_absensiHariIni!.checkIn!)
                         : '--:--',
@@ -262,7 +262,7 @@ class _AbsensiScreenState extends State<AbsensiScreen> {
                 Container(width: 1, height: 50, color: Colors.grey[300]),
                 Expanded(
                   child: _buildTimeInfo(
-                    'Check Out',
+                    'Absen Pulang',
                     sudahCheckOut
                         ? DateFormat('HH:mm').format(_absensiHariIni!.checkOut!)
                         : '--:--',
@@ -278,7 +278,7 @@ class _AbsensiScreenState extends State<AbsensiScreen> {
               ElevatedButton.icon(
                 onPressed: () => _doAbsensi(true),
                 icon: const Icon(Icons.login),
-                label: const Text('CHECK IN SEKARANG'),
+                label: const Text('ABSEN MASUK'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
@@ -289,7 +289,7 @@ class _AbsensiScreenState extends State<AbsensiScreen> {
               ElevatedButton.icon(
                 onPressed: () => _doAbsensi(false),
                 icon: const Icon(Icons.logout),
-                label: const Text('CHECK OUT SEKARANG'),
+                label: const Text('ABSEN PULANG'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,

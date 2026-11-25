@@ -236,7 +236,7 @@ class _NotifikasiSettingScreenState extends State<NotifikasiSettingScreen> {
                 children: [
                   SwitchListTile(
                     secondary: const Icon(Icons.login, color: Colors.green),
-                    title: const Text('Pengingat Check-In'),
+                    title: const Text('Pengingat Absen Masuk'),
                     subtitle: Text('Setiap hari pukul ${_formatJam(_jamCheckIn, _menitCheckIn)}'),
                     value: _checkIn,
                     onChanged: (v) => setState(() => _checkIn = v),
@@ -245,7 +245,7 @@ class _NotifikasiSettingScreenState extends State<NotifikasiSettingScreen> {
                     const Divider(height: 1),
                     ListTile(
                       leading: const Icon(Icons.access_time, color: Colors.grey),
-                      title: const Text('Jam pengingat check-in'),
+                      title: const Text('Jam pengingat absen masuk'),
                       trailing: TextButton(
                         onPressed: () => _pilihWaktu(true),
                         child: Text(_formatJam(_jamCheckIn, _menitCheckIn),
@@ -256,7 +256,7 @@ class _NotifikasiSettingScreenState extends State<NotifikasiSettingScreen> {
                   const Divider(height: 1),
                   SwitchListTile(
                     secondary: const Icon(Icons.logout, color: Colors.blue),
-                    title: const Text('Pengingat Check-Out'),
+                    title: const Text('Pengingat Absen Pulang'),
                     subtitle: Text('Setiap hari pukul ${_formatJam(_jamCheckOut, _menitCheckOut)}'),
                     value: _checkOut,
                     onChanged: (v) => setState(() => _checkOut = v),
@@ -265,7 +265,7 @@ class _NotifikasiSettingScreenState extends State<NotifikasiSettingScreen> {
                     const Divider(height: 1),
                     ListTile(
                       leading: const Icon(Icons.access_time, color: Colors.grey),
-                      title: const Text('Jam pengingat check-out'),
+                      title: const Text('Jam pengingat absen pulang'),
                       trailing: TextButton(
                         onPressed: () => _pilihWaktu(false),
                         child: Text(_formatJam(_jamCheckOut, _menitCheckOut),
@@ -329,6 +329,8 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
   bool _isLoading = false;
 
   late TextEditingController _nameCtrl;
+  late TextEditingController _nikCtrl;
+  late TextEditingController _nipCtrl;
   late TextEditingController _emailCtrl;
   late TextEditingController _noHpCtrl;
 
@@ -337,6 +339,8 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
     super.initState();
     final user = context.read<AuthProvider>().user;
     _nameCtrl = TextEditingController(text: user?.name ?? '');
+    _nikCtrl = TextEditingController(text: user?.nik ?? '');
+    _nipCtrl = TextEditingController(text: user?.nip ?? '');
     _emailCtrl = TextEditingController(text: user?.email ?? '');
     _noHpCtrl = TextEditingController(text: user?.noHp ?? '');
   }
@@ -344,6 +348,8 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
   @override
   void dispose() {
     _nameCtrl.dispose();
+    _nikCtrl.dispose();
+    _nipCtrl.dispose();
     _emailCtrl.dispose();
     _noHpCtrl.dispose();
     super.dispose();
@@ -355,9 +361,11 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
 
     try {
       final formData = FormData.fromMap({
-        'name': _nameCtrl.text,
-        'email': _emailCtrl.text,
-        'no_hp': _noHpCtrl.text,
+        'name': _nameCtrl.text.trim(),
+        'nik': _nikCtrl.text.trim(),
+        'nip': _nipCtrl.text.trim(),
+        'email': _emailCtrl.text.trim(),
+        'no_hp': _noHpCtrl.text.trim(),
       });
 
       await _api.updateProfile(formData);
@@ -373,8 +381,15 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
       }
     } catch (e) {
       if (mounted) {
+        String msg = 'Gagal memperbarui profil';
+        if (e is DioException && e.response != null) {
+          final data = e.response!.data;
+          if (data is Map && data['message'] != null) {
+            msg = data['message'].toString();
+          }
+        }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(msg), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -400,6 +415,26 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                   border: OutlineInputBorder(),
                 ),
                 validator: (v) => v == null || v.isEmpty ? 'Nama wajib diisi' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _nikCtrl,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'NIK',
+                  prefixIcon: Icon(Icons.fingerprint),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _nipCtrl,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'NIP',
+                  prefixIcon: Icon(Icons.badge_outlined),
+                  border: OutlineInputBorder(),
+                ),
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -439,7 +474,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Data jabatan, unit, dan NIP dikelola oleh admin kepegawaian.',
+                        'Data jabatan, unit, dan status dikelola oleh admin kepegawaian.',
                         style: TextStyle(color: Colors.grey, fontSize: 12),
                       ),
                     ),

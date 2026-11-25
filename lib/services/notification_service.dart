@@ -11,8 +11,8 @@ class NotificationService {
 
   static const _androidCheckIn = AndroidNotificationDetails(
     'checkin_channel',
-    'Pengingat Check-In',
-    channelDescription: 'Notifikasi pengingat check-in absensi',
+    'Pengingat Absen Masuk',
+    channelDescription: 'Notifikasi pengingat absen masuk',
     importance: Importance.high,
     priority: Priority.high,
     icon: '@mipmap/ic_launcher',
@@ -20,8 +20,8 @@ class NotificationService {
 
   static const _androidCheckOut = AndroidNotificationDetails(
     'checkout_channel',
-    'Pengingat Check-Out',
-    channelDescription: 'Notifikasi pengingat check-out absensi',
+    'Pengingat Absen Pulang',
+    channelDescription: 'Notifikasi pengingat absen pulang',
     importance: Importance.high,
     priority: Priority.high,
     icon: '@mipmap/ic_launcher',
@@ -79,10 +79,10 @@ class NotificationService {
     await _plugin.cancel(1);
     await _plugin.cancel(2);
 
-    // Notif check-in — hari ini
+    // Notif absen masuk — hari ini
     await _plugin.zonedSchedule(
       1,
-      'Pengingat Check-In ${_labelShift(jenisShift)}',
+      'Pengingat Absen Masuk ${_labelShift(jenisShift)}',
       'Shift ${_labelShift(jenisShift)} mulai jam $jamMasuk. Jangan terlambat!',
       _jadwalHariIni(masukDikurangi[0], masukDikurangi[1]),
       NotificationDetails(
@@ -94,11 +94,11 @@ class NotificationService {
           UILocalNotificationDateInterpretation.absoluteTime,
     );
 
-    // Notif check-out — hari ini atau besok (shift malam)
+    // Notif absen pulang — hari ini atau besok (shift malam)
     await _plugin.zonedSchedule(
       2,
-      'Pengingat Check-Out ${_labelShift(jenisShift)}',
-      'Shift selesai jam $jamKeluar. Jangan lupa check-out!',
+      'Pengingat Absen Pulang ${_labelShift(jenisShift)}',
+      'Shift selesai jam $jamKeluar. Jangan lupa absen pulang!',
       isMalam
           ? _jadwalBesok(keluarDikurangi[0], keluarDikurangi[1])
           : _jadwalHariIni(keluarDikurangi[0], keluarDikurangi[1]),
@@ -124,7 +124,7 @@ class NotificationService {
     await _plugin.zonedSchedule(
       1,
       'Pengingat Absensi',
-      'Jangan lupa check-in hari ini!',
+      'Jangan lupa absen masuk hari ini!',
       _jadwalHariIni(jam, menit),
       NotificationDetails(
         android: _androidCheckIn,
@@ -142,7 +142,7 @@ class NotificationService {
     await _plugin.zonedSchedule(
       2,
       'Pengingat Absensi',
-      'Jangan lupa check-out sebelum pulang!',
+      'Jangan lupa absen pulang!',
       _jadwalHariIni(jam, menit),
       NotificationDetails(
         android: _androidCheckOut,

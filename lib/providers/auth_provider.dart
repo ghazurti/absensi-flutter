@@ -25,8 +25,36 @@ class AuthProvider extends ChangeNotifier {
         await _saveUserCache(_user!);
       } catch (e) {
         final statusCode = _getStatusCode(e);
-        if (statusCode == 401 || statusCode == 403) {
-          // Token tidak valid atau perangkat direset / tidak cocok, paksa login ulang
+        if (statusCode == 401) {
+          // Coba perbarui token otomatis agar pengguna tidak logout sendiri
+          try {
+            final refreshRes = await _api.refreshToken();
+            final newToken = refreshRes.data['access_token'];
+            if (newToken != null) {
+              await _api.saveToken(newToken.toString());
+              final meRes = await _api.getMe();
+              _user = UserModel.fromJson(meRes.data);
+              _isLoggedIn = true;
+              await _saveUserCache(_user!);
+            } else {
+              await _api.clearToken();
+              await _clearUserCache();
+            }
+          } catch (refreshErr) {
+            final refreshStatus = _getStatusCode(refreshErr);
+            if (refreshStatus == 401 || refreshStatus == 403) {
+              await _api.clearToken();
+              await _clearUserCache();
+            } else {
+              final cached = await _loadUserCache();
+              if (cached != null) {
+                _user = cached;
+                _isLoggedIn = true;
+              }
+            }
+          }
+        } else if (statusCode == 403) {
+          // Perangkat tidak cocok / diblokir admin
           await _api.clearToken();
           await _clearUserCache();
         } else {
@@ -35,9 +63,6 @@ class AuthProvider extends ChangeNotifier {
           if (cached != null) {
             _user = cached;
             _isLoggedIn = true;
-          } else {
-            // Tidak ada cache, tidak bisa verifikasi
-            await _api.clearToken();
           }
         }
       }

@@ -48,6 +48,10 @@ class ApiService {
     return _dio.post('/logout');
   }
 
+  Future<Response> refreshToken() {
+    return _dio.post('/refresh');
+  }
+
   Future<Response> getMe() {
     return _dio.get('/me');
   }
