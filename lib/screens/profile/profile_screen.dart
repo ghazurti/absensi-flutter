@@ -58,7 +58,7 @@ class ProfileScreen extends StatelessWidget {
                         const Divider(height: 1),
                         _buildInfoTile(Icons.business, 'Unit', user.unit ?? '-'),
                         const Divider(height: 1),
-                        _buildInfoTile(Icons.military_tech, 'Pangkat/Gol',
+                        _buildInfoTile(Icons.badge_outlined, 'Status',
                             user.pangkatGol ?? '-'),
                         const Divider(height: 1),
                         _buildInfoTile(
