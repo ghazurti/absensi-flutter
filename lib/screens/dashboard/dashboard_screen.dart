@@ -88,7 +88,7 @@ class _HomeTabState extends State<_HomeTab> {
         child: CustomScrollView(
           slivers: [
             SliverAppBar(
-              expandedHeight: 180,
+              expandedHeight: 196,
               floating: false,
               pinned: true,
               flexibleSpace: FlexibleSpaceBar(
@@ -114,8 +114,40 @@ class _HomeTabState extends State<_HomeTab> {
                                   color: Colors.white,
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold)),
-                          Text(user?.jabatan ?? user?.unit ?? '',
-                              style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                          if ((user?.jabatan ?? '').isNotEmpty)
+                            Text(user!.jabatan!,
+                                style: const TextStyle(
+                                    color: Colors.white70, fontSize: 13)),
+                          if ((user?.unit ?? '').isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.18),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.business,
+                                      color: Colors.white, size: 13),
+                                  const SizedBox(width: 5),
+                                  Flexible(
+                                    child: Text(
+                                      'Unit: ${user!.unit!}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
