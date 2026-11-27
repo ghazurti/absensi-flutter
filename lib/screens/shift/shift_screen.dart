@@ -320,8 +320,8 @@ class _AddShiftSheetState extends State<_AddShiftSheet> {
       } else if (mode == 'oncall') {
         _jenisShift = 'pagi';
         _jamMasuk = const TimeOfDay(hour: 8, minute: 0);
-        _jamKeluar = const TimeOfDay(hour: 20, minute: 0);
-        _ketCtrl.text = 'On-Call IT Sabtu/Minggu';
+        _jamKeluar = const TimeOfDay(hour: 6, minute: 0);
+        _ketCtrl.text = 'On-Call IT Sabtu/Minggu (08:00 - 06:00 Pagi)';
       }
     });
   }
@@ -399,7 +399,7 @@ class _AddShiftSheetState extends State<_AddShiftSheet> {
                 Expanded(
                   child: ActionChip(
                     avatar: const Icon(Icons.build_circle, size: 16, color: Colors.orange),
-                    label: const Text('On-Call Sabtu/Minggu', style: TextStyle(fontSize: 11)),
+                    label: const Text('On-Call (08:00-06:00)', style: TextStyle(fontSize: 11)),
                     onPressed: () => _applyPresetIt('oncall'),
                   ),
                 ),

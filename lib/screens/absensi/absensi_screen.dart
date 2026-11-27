@@ -55,9 +55,21 @@ class _AbsensiScreenState extends State<AbsensiScreen> {
         shifts = shiftData.map((e) => ShiftModel.fromJson(e)).toList();
       }
 
+      final yesterday = DateFormat('yyyy-MM-dd').format(now.subtract(const Duration(days: 1)));
+      AbsensiModel? activeToday = absensis.where((a) =>
+          DateFormat('yyyy-MM-dd').format(a.tanggal) == today).firstOrNull;
+      // Jika belum check-in hari ini dan masih pagi (< 12:00), cek apakah ada absensi On-Call / Shift Malam kemarin yang belum check-out
+      if (activeToday == null && now.hour < 12) {
+        final yesterdayOpen = absensis.where((a) =>
+            DateFormat('yyyy-MM-dd').format(a.tanggal) == yesterday &&
+            a.sudahCheckIn &&
+            !a.sudahCheckOut).firstOrNull;
+        if (yesterdayOpen != null) {
+          activeToday = yesterdayOpen;
+        }
+      }
       setState(() {
-        _absensiHariIni = absensis.where((a) =>
-            DateFormat('yyyy-MM-dd').format(a.tanggal) == today).firstOrNull;
+        _absensiHariIni = activeToday;
         _riwayat = absensis;
         _selectedShift = shifts.where((s) =>
             DateFormat('yyyy-MM-dd').format(s.tanggal) == today).firstOrNull;
