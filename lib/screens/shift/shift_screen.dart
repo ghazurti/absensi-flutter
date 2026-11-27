@@ -42,8 +42,10 @@ class _ShiftScreenState extends State<ShiftScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal memuat shift. Tarik untuk coba lagi.'),
-              backgroundColor: Colors.red),
+          const SnackBar(
+            content: Text('Gagal memuat shift. Tarik untuk coba lagi.'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -51,13 +53,13 @@ class _ShiftScreenState extends State<ShiftScreen> {
 
   void _showAddShift() {
     final user = context.read<AuthProvider>().user;
-    if (user != null && !user.isShift) {
+    if (user != null && !user.canManageShift) {
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(
-            children: const [
+          title: const Row(
+            children: [
               Icon(Icons.block, color: Colors.red, size: 28),
               SizedBox(width: 8),
               Text('Akses Ditolak'),
@@ -65,12 +67,15 @@ class _ShiftScreenState extends State<ShiftScreen> {
           ),
           content: const Text(
             'Anda terdaftar sebagai pegawai dengan absensi normal.\n\n'
-            'Fitur jadwal shift hanya tersedia untuk pegawai dengan sistem absensi shift.',
+            'Fitur input jadwal shift mandiri hanya tersedia untuk pegawai Shift dan unit IT / SIMRS.',
           ),
           actions: [
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
-              style: ElevatedButton.styleFrom(backgroundColor: AppConstants.primaryColor, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppConstants.primaryColor,
+                foregroundColor: Colors.white,
+              ),
               child: const Text('Mengerti'),
             ),
           ],
@@ -88,6 +93,7 @@ class _ShiftScreenState extends State<ShiftScreen> {
       builder: (_) => _AddShiftSheet(
         onSaved: _loadShifts,
         api: _api,
+        isItUnit: user?.isItUnit ?? false,
       ),
     );
   }
@@ -100,7 +106,10 @@ class _ShiftScreenState extends State<ShiftScreen> {
         content: Text('Hapus shift tanggal ${DateFormat('dd MMM yyyy').format(shift.tanggal)}?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Hapus', style: TextStyle(color: Colors.red))),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+          ),
         ],
       ),
     );
@@ -109,7 +118,9 @@ class _ShiftScreenState extends State<ShiftScreen> {
       try {
         await _api.deleteShift(shift.id);
         _loadShifts();
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Shift dihapus')));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Shift dihapus')));
+        }
       } catch (_) {}
     }
   }
@@ -120,15 +131,26 @@ class _ShiftScreenState extends State<ShiftScreen> {
       appBar: AppBar(
         title: const Text('Jadwal Shift'),
         actions: [
-          IconButton(icon: const Icon(Icons.chevron_left), onPressed: () {
-            setState(() => _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1));
-            _loadShifts();
-          }),
-          Center(child: Text(DateFormat('MMM yyyy').format(_selectedMonth), style: const TextStyle(color: Colors.white))),
-          IconButton(icon: const Icon(Icons.chevron_right), onPressed: () {
-            setState(() => _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1));
-            _loadShifts();
-          }),
+          IconButton(
+            icon: const Icon(Icons.chevron_left),
+            onPressed: () {
+              setState(() => _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1));
+              _loadShifts();
+            },
+          ),
+          Center(
+            child: Text(
+              DateFormat('MMM yyyy').format(_selectedMonth),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.chevron_right),
+            onPressed: () {
+              setState(() => _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1));
+              _loadShifts();
+            },
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -138,22 +160,41 @@ class _ShiftScreenState extends State<ShiftScreen> {
       ),
       body: Builder(builder: (context) {
         final user = context.watch<AuthProvider>().user;
-        final isNormal = user != null && !user.isShift;
+        final cannotShift = user != null && !user.canManageShift;
+        final isItHybrid = user != null && user.isItUnit && !user.isShift;
         return Column(
           children: [
-            if (isNormal)
+            if (cannotShift)
               Container(
                 width: double.infinity,
                 color: Colors.orange.shade100,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                child: Row(
-                  children: const [
+                child: const Row(
+                  children: [
                     Icon(Icons.info_outline, color: Colors.orange, size: 20),
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Anda adalah pegawai absensi normal. Tidak dapat menambah jadwal shift.',
                         style: TextStyle(color: Colors.orange, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            if (isItHybrid)
+              Container(
+                width: double.infinity,
+                color: Colors.blue.shade50,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: const Row(
+                  children: [
+                    Icon(Icons.computer, color: Colors.blue, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Mode IT / SIMRS: Hari biasa otomatis 07:30-16:00. Tambahkan jadwal di sini hanya saat Anda mendapat Shift Siang (14:00-21:00) atau On-Call Sabtu/Minggu.',
+                        style: TextStyle(color: Colors.blue, fontSize: 12),
                       ),
                     ),
                   ],
@@ -169,10 +210,10 @@ class _ShiftScreenState extends State<ShiftScreen> {
                             children: [
                               const Icon(Icons.schedule, size: 64, color: Colors.grey),
                               const SizedBox(height: 16),
-                              const Text('Belum ada shift', style: TextStyle(color: Colors.grey)),
-                              if (!isNormal) ...[
+                              const Text('Belum ada shift tambahan pada bulan ini', style: TextStyle(color: Colors.grey)),
+                              if (!cannotShift) ...[
                                 const SizedBox(height: 8),
-                                ElevatedButton(onPressed: _showAddShift, child: const Text('Tambah Shift')),
+                                ElevatedButton(onPressed: _showAddShift, child: const Text('Tambah Shift / On-Call')),
                               ],
                             ],
                           ),
@@ -196,6 +237,7 @@ class _ShiftScreenState extends State<ShiftScreen> {
     final colors = {'pagi': Colors.orange, 'siang': Colors.blue, 'malam': Colors.indigo};
     final icons = {'pagi': Icons.wb_sunny, 'siang': Icons.wb_cloudy, 'malam': Icons.nightlight_round};
     final color = colors[shift.jenisShift] ?? Colors.grey;
+    final ket = (shift.keterangan ?? '').trim();
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -205,7 +247,9 @@ class _ShiftScreenState extends State<ShiftScreen> {
           child: Icon(icons[shift.jenisShift] ?? Icons.schedule, color: color),
         ),
         title: Text(DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(shift.tanggal)),
-        subtitle: Text('${shift.labelShift} • ${shift.jamMasuk} - ${shift.jamKeluar}'),
+        subtitle: Text(
+          '${shift.labelShift} • ${shift.jamMasuk} - ${shift.jamKeluar}${ket.isNotEmpty ? ' ($ket)' : ''}',
+        ),
         trailing: IconButton(
           icon: const Icon(Icons.delete_outline, color: Colors.red),
           onPressed: () => _deleteShift(shift),
@@ -218,19 +262,24 @@ class _ShiftScreenState extends State<ShiftScreen> {
 class _AddShiftSheet extends StatefulWidget {
   final VoidCallback onSaved;
   final ApiService api;
+  final bool isItUnit;
 
-  const _AddShiftSheet({required this.onSaved, required this.api});
+  const _AddShiftSheet({
+    required this.onSaved,
+    required this.api,
+    this.isItUnit = false,
+  });
 
   @override
   State<_AddShiftSheet> createState() => _AddShiftSheetState();
 }
 
 class _AddShiftSheetState extends State<_AddShiftSheet> {
-  final _formKey = GlobalKey<FormState>();
   DateTime? _tanggal;
-  String _jenisShift = 'pagi';
-  TimeOfDay _jamMasuk = const TimeOfDay(hour: 7, minute: 0);
-  TimeOfDay _jamKeluar = const TimeOfDay(hour: 14, minute: 0);
+  String _jenisShift = 'siang';
+  TimeOfDay _jamMasuk = const TimeOfDay(hour: 14, minute: 0);
+  TimeOfDay _jamKeluar = const TimeOfDay(hour: 21, minute: 0);
+  final TextEditingController _ketCtrl = TextEditingController();
   bool _isSaving = false;
 
   final _shiftDefaults = {
@@ -239,11 +288,49 @@ class _AddShiftSheetState extends State<_AddShiftSheet> {
     'malam': {'masuk': const TimeOfDay(hour: 21, minute: 0), 'keluar': const TimeOfDay(hour: 7, minute: 0)},
   };
 
+  @override
+  void initState() {
+    super.initState();
+    _tanggal = DateTime.now();
+    if (widget.isItUnit) {
+      _jenisShift = 'siang';
+      _jamMasuk = const TimeOfDay(hour: 14, minute: 0);
+      _jamKeluar = const TimeOfDay(hour: 21, minute: 0);
+      _ketCtrl.text = 'Shift Siang IT (14:00 - 21:00)';
+    } else {
+      _jenisShift = 'pagi';
+      _jamMasuk = const TimeOfDay(hour: 7, minute: 0);
+      _jamKeluar = const TimeOfDay(hour: 14, minute: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _ketCtrl.dispose();
+    super.dispose();
+  }
+
+  void _applyPresetIt(String mode) {
+    setState(() {
+      if (mode == 'siang') {
+        _jenisShift = 'siang';
+        _jamMasuk = const TimeOfDay(hour: 14, minute: 0);
+        _jamKeluar = const TimeOfDay(hour: 21, minute: 0);
+        _ketCtrl.text = 'Shift Siang IT (14:00 - 21:00)';
+      } else if (mode == 'oncall') {
+        _jenisShift = 'pagi';
+        _jamMasuk = const TimeOfDay(hour: 8, minute: 0);
+        _jamKeluar = const TimeOfDay(hour: 20, minute: 0);
+        _ketCtrl.text = 'On-Call IT Sabtu/Minggu';
+      }
+    });
+  }
+
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
+      initialDate: _tanggal ?? DateTime.now(),
+      firstDate: DateTime.now().subtract(const Duration(days: 1)),
       lastDate: DateTime.now().add(const Duration(days: 90)),
     );
     if (picked != null) setState(() => _tanggal = picked);
@@ -251,7 +338,9 @@ class _AddShiftSheetState extends State<_AddShiftSheet> {
 
   Future<void> _save() async {
     if (_tanggal == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pilih tanggal terlebih dahulu')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pilih tanggal terlebih dahulu')),
+      );
       return;
     }
 
@@ -262,6 +351,7 @@ class _AddShiftSheetState extends State<_AddShiftSheet> {
         'jenis_shift': _jenisShift,
         'jam_masuk': '${_jamMasuk.hour.toString().padLeft(2, '0')}:${_jamMasuk.minute.toString().padLeft(2, '0')}',
         'jam_keluar': '${_jamKeluar.hour.toString().padLeft(2, '0')}:${_jamKeluar.minute.toString().padLeft(2, '0')}',
+        'keterangan': _ketCtrl.text.trim().isEmpty ? null : _ketCtrl.text.trim(),
       });
       widget.onSaved();
       if (mounted) Navigator.pop(context);
@@ -271,7 +361,11 @@ class _AddShiftSheetState extends State<_AddShiftSheet> {
         final data = e.response!.data;
         if (data is Map) msg = data['message']?.toString() ?? msg;
       }
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg), backgroundColor: Colors.red),
+        );
+      }
     }
     setState(() => _isSaving = false);
   }
@@ -279,23 +373,58 @@ class _AddShiftSheetState extends State<_AddShiftSheet> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 20, right: 20, top: 20),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        left: 20,
+        right: 20,
+        top: 20,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Tambah Shift', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
+          const Text('Tambah Jadwal Shift', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          if (widget.isItUnit) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: ActionChip(
+                    avatar: const Icon(Icons.wb_cloudy, size: 16, color: Colors.blue),
+                    label: const Text('Shift Siang IT (14-21)', style: TextStyle(fontSize: 11)),
+                    onPressed: () => _applyPresetIt('siang'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ActionChip(
+                    avatar: const Icon(Icons.build_circle, size: 16, color: Colors.orange),
+                    label: const Text('On-Call Sabtu/Minggu', style: TextStyle(fontSize: 11)),
+                    onPressed: () => _applyPresetIt('oncall'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 12),
           OutlinedButton.icon(
             onPressed: _pickDate,
             icon: const Icon(Icons.calendar_today),
-            label: Text(_tanggal == null ? 'Pilih Tanggal' : DateFormat('dd MMMM yyyy', 'id_ID').format(_tanggal!)),
+            label: Text(
+              _tanggal == null
+                  ? 'Pilih Tanggal'
+                  : DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(_tanggal!),
+            ),
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: _jenisShift,
             decoration: const InputDecoration(labelText: 'Jenis Shift', border: OutlineInputBorder()),
-            items: ['pagi', 'siang', 'malam'].map((s) => DropdownMenuItem(value: s, child: Text(s.toUpperCase()))).toList(),
+            items: [
+              const DropdownMenuItem(value: 'pagi', child: Text('PAGI (07:00 - 14:00)')),
+              const DropdownMenuItem(value: 'siang', child: Text('SIANG (14:00 - 21:00)')),
+              const DropdownMenuItem(value: 'malam', child: Text('MALAM (21:00 - 07:00)')),
+            ],
             onChanged: (v) {
               setState(() {
                 _jenisShift = v!;
@@ -328,11 +457,29 @@ class _AddShiftSheetState extends State<_AddShiftSheet> {
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _ketCtrl,
+            decoration: const InputDecoration(
+              labelText: 'Keterangan (Contoh: Shift Siang IT / On-Call)',
+              border: OutlineInputBorder(),
+              isDense: true,
+            ),
+          ),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _isSaving ? null : _save,
-            style: ElevatedButton.styleFrom(backgroundColor: AppConstants.primaryColor, foregroundColor: Colors.white),
-            child: _isSaving ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text('SIMPAN SHIFT'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppConstants.primaryColor,
+              foregroundColor: Colors.white,
+            ),
+            child: _isSaving
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                  )
+                : const Text('SIMPAN SHIFT'),
           ),
           const SizedBox(height: 16),
         ],

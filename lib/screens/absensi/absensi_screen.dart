@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../services/api_service.dart';
+import '../../services/device_service.dart';
 import '../../models/absensi_model.dart';
 import '../../models/shift_model.dart';
 import '../../providers/auth_provider.dart';
@@ -39,7 +40,7 @@ class _AbsensiScreenState extends State<AbsensiScreen> {
 
       final futures = <Future>[
         _api.getAbsensi(bulan: now.month, tahun: now.year),
-        if (user?.isShift == true)
+        if (user?.canManageShift == true)
           _api.getShifts(bulan: now.month, tahun: now.year),
       ];
 
@@ -49,7 +50,7 @@ class _AbsensiScreenState extends State<AbsensiScreen> {
       final today = DateFormat('yyyy-MM-dd').format(now);
 
       List<ShiftModel> shifts = [];
-      if (user?.isShift == true && results.length > 1) {
+      if (user?.canManageShift == true && results.length > 1) {
         final List shiftData = results[1].data;
         shifts = shiftData.map((e) => ShiftModel.fromJson(e)).toList();
       }
@@ -93,7 +94,11 @@ class _AbsensiScreenState extends State<AbsensiScreen> {
     }
 
     return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 20),
+      ),
+    );
   }
 
   // Placeholder JPEG valid (1x1 px, 134 byte) saat kamera dinonaktifkan
@@ -112,17 +117,62 @@ class _AbsensiScreenState extends State<AbsensiScreen> {
   Future<void> _doAbsensi(bool isCheckIn) async {
     final user = context.read<AuthProvider>().user;
 
-    // User shift wajib pilih shift hari ini sebelum check-in
-    if (isCheckIn && user?.isShift == true && _selectedShift == null) {
+    final isWeekend = [DateTime.saturday, DateTime.sunday].contains(DateTime.now().weekday);
+    if (isCheckIn && user?.isShift == true && user?.isItUnit != true && _selectedShift == null) {
       _showError('Anda belum memiliki jadwal shift hari ini.\nTambahkan shift terlebih dahulu.');
+      return;
+    }
+    if (isCheckIn && user?.isItUnit == true && isWeekend && _selectedShift == null) {
+      _showError('Hari ini akhir pekan (Sabtu/Minggu).\nKhusus IT/SIMRS yang bertugas On-Call / Shift, silakan tambahkan jadwal di tab Shift terlebih dahulu.');
       return;
     }
 
     setState(() => _isProcessing = true);
 
     try {
+      // 1. Cek keamanan perangkat (Developer Mode, Emulator, Root, Jam Otomatis, Fake GPS app)
+      final security = await DeviceService.checkSecurity();
+      if (security.blockingReason != null) {
+        _showError(security.blockingReason!);
+        setState(() => _isProcessing = false);
+        return;
+      }
+
+      // 2. Ambil koordinat GPS segar
       final position = await _getLocation();
       if (position == null) {
+        setState(() => _isProcessing = false);
+        return;
+      }
+
+      // 3. Cek Fake GPS (Mock Location) — kirim laporan ke server agar tercatat di Audit Log
+      if (position.isMocked) {
+        try {
+          final reportData = FormData.fromMap({
+            'latitude': position.latitude,
+            'longitude': position.longitude,
+            'is_mocked': 1,
+            'accuracy': position.accuracy,
+          });
+          if (isCheckIn) {
+            await _api.checkIn(reportData);
+          } else {
+            await _api.checkOut(reportData);
+          }
+        } catch (_) {}
+        _showError('Lokasi palsu (Fake GPS) terdeteksi!\nAbsensi ditolak dan percobaan ini dicatat oleh sistem.');
+        setState(() => _isProcessing = false);
+        return;
+      }
+
+      // 4. Cek akurasi GPS (hindari lokasi kasar/seluler > 100m) & lokasi basi (> 60 detik)
+      if (position.accuracy > 100) {
+        _showError('Sinyal GPS kurang akurat (${position.accuracy.round()} m).\nPindah ke area lebih terbuka lalu coba lagi.');
+        setState(() => _isProcessing = false);
+        return;
+      }
+      if (DateTime.now().difference(position.timestamp).inSeconds.abs() > 60) {
+        _showError('Data lokasi GPS sudah kedaluwarsa.\nTunggu beberapa detik lalu coba lagi.');
         setState(() => _isProcessing = false);
         return;
       }
@@ -143,6 +193,8 @@ class _AbsensiScreenState extends State<AbsensiScreen> {
       final formMap = <String, dynamic>{
         'latitude': position.latitude,
         'longitude': position.longitude,
+        'is_mocked': position.isMocked ? 1 : 0,
+        'accuracy': position.accuracy,
       };
 
       if (AppConstants.enableCameraAbsensi) {
@@ -243,7 +295,7 @@ class _AbsensiScreenState extends State<AbsensiScreen> {
             const SizedBox(height: 8),
             Text(DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(DateTime.now()),
                 style: const TextStyle(color: Colors.grey)),
-            if (user?.isShift == true) ...[
+            if (user?.canManageShift == true) ...[
               const SizedBox(height: 12),
               _buildShiftInfo(),
             ],
@@ -319,7 +371,9 @@ class _AbsensiScreenState extends State<AbsensiScreen> {
   }
 
   Widget _buildShiftInfo() {
+    final user = context.read<AuthProvider>().user;
     if (_selectedShift != null) {
+      final ket = (_selectedShift!.keterangan ?? '').trim();
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
@@ -331,9 +385,45 @@ class _AbsensiScreenState extends State<AbsensiScreen> {
           children: [
             const Icon(Icons.schedule, size: 16, color: Colors.blue),
             const SizedBox(width: 8),
-            Text(
-              'Shift ${_selectedShift!.labelShift} • ${_selectedShift!.jamMasuk} - ${_selectedShift!.jamKeluar}',
-              style: const TextStyle(color: Colors.blue, fontSize: 13),
+            Expanded(
+              child: Text(
+                'Shift ${_selectedShift!.labelShift} • ${_selectedShift!.jamMasuk} - ${_selectedShift!.jamKeluar}${ket.isNotEmpty ? ' ($ket)' : ''}',
+                style: const TextStyle(color: Colors.blue, fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (user?.isItUnit == true && user?.isShift != true) {
+      final isWeekend = [DateTime.saturday, DateTime.sunday].contains(DateTime.now().weekday);
+      final isFriday = DateTime.now().weekday == DateTime.friday;
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isWeekend ? Colors.orange[50] : Colors.green[50],
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: isWeekend ? Colors.orange[200]! : Colors.green[200]!),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              isWeekend ? Icons.info_outline : Icons.computer,
+              size: 16,
+              color: isWeekend ? Colors.orange : Colors.green[700],
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                isWeekend
+                    ? 'Akhir pekan (Libur). Jika Anda piket On-Call / Shift IT hari ini, tambahkan di tab Shift.'
+                    : 'Jam Reguler IT (${isFriday ? '07:30 - 16:30' : '07:30 - 16:00'}). Jika hari ini Shift Siang (14:00 - 21:00), tambahkan di tab Shift.',
+                style: TextStyle(
+                  color: isWeekend ? Colors.orange[800] : Colors.green[800],
+                  fontSize: 12,
+                ),
+              ),
             ),
           ],
         ),

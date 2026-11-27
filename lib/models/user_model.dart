@@ -61,4 +61,15 @@ class UserModel {
 
   bool get isAdmin => role == 'admin';
   bool get isShift => jenisAbsensi == 'shift';
+
+  bool get isItUnit {
+    final u = (unit ?? '').trim().toUpperCase();
+    if (u.isEmpty) return false;
+    if (const ['IT', 'SIMRS', 'INSTALASI SIMRS', 'INSTALASI IT', 'TI', 'SIRS', 'PDE'].contains(u)) {
+      return true;
+    }
+    return RegExp(r'\b(IT|SIMRS|SIRS|TEKNOLOGI INFORMASI)\b', caseSensitive: false).hasMatch(u);
+  }
+
+  bool get canManageShift => isShift || isItUnit || isAdmin;
 }
